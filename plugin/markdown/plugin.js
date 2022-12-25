@@ -181,13 +181,13 @@ const Plugin = () => {
 				markdownSections += '<section '+ options.attributes +'>';
 
 				sectionStack[i].forEach( function( child ) {
-					markdownSections += '<section data-markdown>' + createMarkdownSlide( child, options ) + '</section>';
+					markdownSections += '<section data-markdown data-separator-notes="' + options.notesSeparator + '">' + createMarkdownSlide( child, options ) + '</section>';
 				} );
 
 				markdownSections += '</section>';
 			}
 			else {
-				markdownSections += '<section '+ options.attributes +' data-markdown>' + createMarkdownSlide( sectionStack[i], options ) + '</section>';
+				markdownSections += '<section '+ options.attributes +' data-markdown data-separator-notes="' + options.notesSeparator + '">' + createMarkdownSlide( sectionStack[i], options ) + '</section>';
 			}
 		}
 
@@ -200,7 +200,7 @@ const Plugin = () => {
 	 * multi-slide markdown into separate sections and
 	 * handles loading of external markdown.
 	 */
-	function processSlides( scope ) {
+	function processSlides( scope, options ) {
 
 		return new Promise( function( resolve ) {
 
@@ -239,7 +239,7 @@ const Plugin = () => {
 					section.outerHTML = slidify( getMarkdownFromSlide( section ), {
 						separator: section.getAttribute( 'data-separator' ),
 						verticalSeparator: section.getAttribute( 'data-separator-vertical' ),
-						notesSeparator: section.getAttribute( 'data-separator-notes' ),
+						notesSeparator: section.getAttribute( 'data-separator-notes' ) || options.notesSeparator,
 						attributes: getForwardedAttributes( section )
 					});
 
@@ -344,7 +344,7 @@ const Plugin = () => {
 					var j = i - 1;
 					while ( j >= 0 ) {
 						var aPreviousChildElement = element.childNodes[j];
-						if ( typeof aPreviousChildElement.setAttribute == 'function' && aPreviousChildElement.tagName != "BR" ) {
+						if ( typeof aPreviousChildElement.setAttribute === 'function' && aPreviousChildElement.tagName != "BR" ) {
 							previousParentElement = aPreviousChildElement;
 							break;
 						}
@@ -356,7 +356,7 @@ const Plugin = () => {
 					parentSection = childElement ;
 					previousParentElement = childElement ;
 				}
-				if ( typeof childElement.setAttribute == 'function' || childElement.nodeType == Node.COMMENT_NODE ) {
+				if ( typeof childElement.setAttribute === 'function' || childElement.nodeType == Node.COMMENT_NODE ) {
 					addAttributes( parentSection, childElement, previousParentElement, separatorElementAttributes, separatorSectionAttributes );
 				}
 			}
@@ -421,7 +421,8 @@ const Plugin = () => {
 
 			deck = reveal;
 
-			let { renderer, animateLists, ...markedOptions } = deck.getConfig().markdown || {};
+			let options = deck.getConfig();
+			let { renderer, animateLists, ...markedOptions } = options.markdown || {};
 
 			if( !renderer ) {
 				renderer = new marked.Renderer();
@@ -459,7 +460,7 @@ const Plugin = () => {
 				...markedOptions
 			} );
 
-			return processSlides( deck.getRevealElement() ).then( convertSlides );
+			return processSlides( deck.getRevealElement(), options ).then( convertSlides );
 
 		},
 
