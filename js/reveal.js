@@ -1686,7 +1686,7 @@ export default function( revealElement, options ) {
 		if( overview.isActive() ) {
 			overview.layout();
 		}
-
+		dispatchEvent('synced');
 	}
 
 	/**
